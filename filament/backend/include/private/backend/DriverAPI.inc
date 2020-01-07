@@ -326,6 +326,11 @@ DECL_DRIVER_API_N(makeCurrent,
 DECL_DRIVER_API_N(commit,
         backend::SwapChainHandle, sch)
 
+
+DECL_DRIVER_API_N(setSwapInterval,
+        backend::SwapChainHandle, sch,
+        uint32_t, interval)
+
 /*
  * Setting rendering state
  * -----------------------

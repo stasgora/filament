@@ -1404,6 +1404,15 @@ void OpenGLDriver::makeCurrent(Handle<HwSwapChain> schDraw, Handle<HwSwapChain> 
     }
 }
 
+void OpenGLDriver::setSwapInterval(Handle<HwSwapChain> schDraw, uint32_t interval) {
+    DEBUG_MARKER()
+
+    if (schDraw) {
+        HwSwapChain* scDraw = handle_cast<HwSwapChain*>(schDraw);
+        mPlatform.setSwapInterval(scDraw->swapChain, interval);
+    }
+}
+
 // ------------------------------------------------------------------------------------------------
 // Updating driver objects
 // ------------------------------------------------------------------------------------------------

@@ -42,6 +42,7 @@ public:
     void destroySwapChain(SwapChain* swapChain) noexcept override;
     void makeCurrent(SwapChain* drawSwapChain, SwapChain* readSwapChain) noexcept override;
     void commit(SwapChain* swapChain) noexcept override;
+    void setSwapInterval(Platform::SwapChain* swapChain, uint32_t interval) noexcept override;
 
     Fence* createFence() noexcept override;
     void destroyFence(Fence* fence) noexcept override;

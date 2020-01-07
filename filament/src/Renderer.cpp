@@ -665,6 +665,12 @@ RenderPass::CommandTypeFlags FRenderer::getCommandType(View::DepthPrepass prepas
     return commandType;
 }
 
+void FRenderer::setSwapInterval(FSwapChain* swapChain, uint32_t interval) {
+    FEngine& engine = getEngine();
+    FEngine::DriverApi& driver = engine.getDriverApi();
+    driver.setSwapInterval(swapChain->getHwHandle(), interval);
+}
+
 } // namespace details
 
 // ------------------------------------------------------------------------------------------------
@@ -713,6 +719,10 @@ double Renderer::getUserTime() const {
 
 void Renderer::resetUserTime() {
     upcast(this)->resetUserTime();
+}
+
+void Renderer::setSwapInterval(SwapChain* swapChain, uint32_t interval) {
+    upcast(this)->setSwapInterval(upcast(swapChain), interval);
 }
 
 } // namespace filament

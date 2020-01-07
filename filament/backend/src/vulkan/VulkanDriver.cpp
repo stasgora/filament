@@ -852,6 +852,9 @@ void VulkanDriver::makeCurrent(Handle<HwSwapChain> drawSch, Handle<HwSwapChain> 
     mContext.currentSurface = &sContext;
 }
 
+void VulkanDriver::setSwapInterval(Handle<HwSwapChain> schDraw, uint32_t interval) {
+}
+
 void VulkanDriver::commit(Handle<HwSwapChain> sch) {
     // Tell Vulkan we're done appending to the command buffer.
     ASSERT_POSTCONDITION(mContext.currentCommands,

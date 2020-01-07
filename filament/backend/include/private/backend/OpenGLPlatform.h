@@ -49,6 +49,8 @@ public:
 
     virtual void destroySwapChain(SwapChain* swapChain) noexcept = 0;
 
+    virtual void setSwapInterval(SwapChain* swapChain, uint32_t interval) noexcept = 0;
+
     virtual void createDefaultRenderTarget(uint32_t& framebuffer, uint32_t& colorbuffer,
             uint32_t& depthbuffer) noexcept {
         framebuffer = 0;

@@ -24,6 +24,7 @@
 #include <GL/glxext.h>
 
 #include "OpenGLDriverFactory.h"
+#include "GLUtils.h"
 
 #include <dlfcn.h>
 
@@ -39,6 +40,8 @@ typedef Display* (* X11_CLOSE_DISPLAY)(Display*);
 // Function pointer types for GLX functions
 typedef void (* GLX_DESTROY_CONTEXT)(Display*, GLXContext);
 typedef void (* GLX_SWAP_BUFFERS)(Display* dpy, GLXDrawable drawable);
+
+typedef const char* (*GLXQUERYEXTENSIONSSTRINGPROC)(Display*,int);
 // Stores GLX function pointers and a handle to the system's GLX library
 struct GLXFunctions {
     PFNGLXCHOOSEFBCONFIGPROC chooseFbConfig;
@@ -70,6 +73,12 @@ struct GLXFunctions {
       `GLX_FBCONFIG_ID`.
     */
     PFNGLXGETFBCONFIGATTRIBPROC getFbConfigAttrib;
+
+    GLXQUERYEXTENSIONSSTRINGPROC queryExtensionsString;
+
+    PFNGLXSWAPINTERVALSGIPROC SwapIntervalSGI = nullptr;
+    PFNGLXSWAPINTERVALEXTPROC SwapIntervalEXT = nullptr;
+    PFNGLXSWAPINTERVALMESAPROC SwapIntervalMESA = nullptr;
 
     GLX_DESTROY_CONTEXT destroyContext;
     GLX_SWAP_BUFFERS swapBuffers;
@@ -116,6 +125,8 @@ static bool loadLibraries() {
             getProcAddress((const GLubyte*)"glXGetFBConfigs");
     g_glx.getFbConfigAttrib = (PFNGLXGETFBCONFIGATTRIBPROC)
             getProcAddress((const GLubyte*)"glXGetFBConfigAttrib");
+    g_glx.queryExtensionsString = (GLXQUERYEXTENSIONSSTRINGPROC)
+            getProcAddress((const GLubyte*)"glXQueryExtensionsString");
 
     g_x11.library = dlopen(LIBRARY_X11, RTLD_LOCAL | RTLD_NOW);
     if (!g_x11.library) {
@@ -199,6 +210,19 @@ Driver* PlatformGLX::createDriver(void* const sharedGLContext) noexcept {
         if (mGLXConfig == nullptr || configCount == 0) {
             return nullptr;
         }
+    }
+    auto extensions = GLUtils::split(g_glx.queryExtensionsString(mGLXDisplay, DefaultScreen(mGLXDisplay)));
+    if (extensions.has("GLX_EXT_swap_control")) {
+        g_glx.SwapIntervalEXT = (PFNGLXSWAPINTERVALEXTPROC)
+                getProcAddress((const GLubyte*)"glXSwapIntervalEXT");
+    }
+    if (extensions.has("GLX_SGI_swap_control")) {
+        g_glx.SwapIntervalSGI = (PFNGLXSWAPINTERVALSGIPROC)
+                getProcAddress((const GLubyte*)"glXSwapIntervalSGI");
+    }
+    if (extensions.has("GLX_MESA_swap_control")) {
+        g_glx.SwapIntervalMESA = (PFNGLXSWAPINTERVALMESAPROC)
+                getProcAddress((const GLubyte*)"glXSwapIntervalMESA");
     }
 
     PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribs = (PFNGLXCREATECONTEXTATTRIBSARBPROC)
@@ -294,6 +318,19 @@ void PlatformGLX::destroyFence(Fence* fence) noexcept {
 
 backend::FenceStatus PlatformGLX::waitFence(Fence* fence, uint64_t timeout) noexcept {
     return backend::FenceStatus::CONDITION_SATISFIED;
+}
+
+void PlatformGLX::setSwapInterval(Platform::SwapChain* swapChain, uint32_t interval) noexcept {
+    int result = 0;
+    if (g_glx.SwapIntervalEXT) {
+        g_glx.SwapIntervalEXT(mGLXDisplay, (GLXDrawable)swapChain, interval);
+    }
+    else if (g_glx.SwapIntervalMESA)
+        result = g_glx.SwapIntervalMESA(interval);
+    else if (g_glx.SwapIntervalSGI) {
+        if (interval > 0)
+            result = g_glx.SwapIntervalSGI(interval);
+    }
 }
 
 } // namespace filament

@@ -409,6 +409,8 @@ public:
      */
     double getUserTime() const;
 
+    void setSwapInterval(SwapChain* swapChain, uint32_t interval);
+
     /**
      * Sets the user time epoch to now, i.e. resets the user time to zero.
      *

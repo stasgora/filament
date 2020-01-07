@@ -90,6 +90,8 @@ public:
     // Clean-up everything, this is typically called when the client calls Engine::destroyRenderer()
     void terminate(FEngine& engine);
 
+    void setSwapInterval(FSwapChain* swapChain, uint32_t interval);
+
 private:
     friend class Renderer;
     using Command = RenderPass::Command;
